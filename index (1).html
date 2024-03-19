@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>crap shooter</title>
+    <link rel="icon" type="image/x-icon" href="/assets/player.png">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        #stopwatch { position: absolute; top: 20px; left: 20px; color: white; font-size: 20px; }
+        #score { position: absolute; top: 20px; right: 20px; color: white; font-size: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="stopwatch"></div>
+<div id="score">Score: 0</div>
+
+<script>
+    // Define configuration object
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 0 },
+                debug: false // Set to true to view physics bodies
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    // Create a new Phaser game instance
+    const game = new Phaser.Game(config);
+
+    let player;
+    let zombies;
+    let cursors;
+    let bullets;
+    let stopwatchText;
+    let scoreText;
+    let startTime;
+    let score = 0;
+
+    function preload() {
+        // Load assets
+      //  this.load.image('player', 'assets/player.png');
+      //  this.load.image('zombie', 'assets/zombie.png');
+      //  this.load.image('bullet', 'assets/bullet.png');
+        this.load.image('background', 'assets/background.png');
+        this.load.start()
+    }
+
+    function create() {
+        // Create player
+        this.add.image(400, 300, 'background').setDisplaySize(800, 600);
+        player = this.physics.add.sprite(400, 300, 'player');
+        player.setCollideWorldBounds(true);
+
+        // Create zombies group
+        zombies = this.physics.add.group();
+
+        // Create bullets group
+        bullets = this.physics.add.group({
+            allowGravity: false,
+            collideWorldBounds: false
+        });
+
+        // Set up cursor keys
+        cursors = this.input.keyboard.createCursorKeys();
+
+        // Set up mouse input
+        this.input.on('pointerdown', shootBullet, this);
+
+        // Handle collisions
+        this.physics.add.collider(bullets, zombies, bulletHitZombie, null, this);
+        this.physics.add.overlap(player, zombies, playerHitZombie, null, this);
+
+        // Start stopwatch
+        startTime = Date.now();
+
+        // Display stopwatch
+        stopwatchText = this.add.text(20, 20, 'Time: 0', { fontSize: '20px', fill: '#fff' });
+
+        // Display score
+        scoreText = this.add.text(680, 20, 'Score: 0', { fontSize: '20px', fill: '#fff' });
+
+        // Spawn zombies periodically
+        this.time.addEvent({ delay: 800, callback: spawnZombie, callbackScope: this, loop: true });
+    }
+
+    function update() {
+        // Update stopwatch text
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        stopwatchText.setText('Time: ' + elapsedTime + 's');
+
+        // Rotate player towards the mouse pointer
+        player.rotation = Phaser.Math.Angle.Between(player.x, player.y, this.input.x, this.input.y);
+
+        // Move player
+        if (cursors.left.isDown) {
+            player.setVelocityX(-200);
+        } else if (cursors.right.isDown) {
+            player.setVelocityX(200);
+        } else {
+            player.setVelocityX(0);
+        }
+
+        if (cursors.up.isDown) {
+            player.setVelocityY(-200);
+        } else if (cursors.down.isDown) {
+            player.setVelocityY(200);
+        } else {
+            player.setVelocityY(0);
+        }
+
+        // Wrap player around the screen
+        this.physics.world.wrap(player, 16);
+
+        // Check for boundary collisions and reverse velocity for each zombie
+        zombies.children.each(function(zombie) {
+            if (zombie.x <= 0 || zombie.x >= game.config.width) {
+                zombie.setVelocityX(zombie.body.velocity.x * -1);
+            }
+            if (zombie.y <= 0 || zombie.y >= game.config.height) {
+                zombie.setVelocityY(zombie.body.velocity.y * -1);
+            }
+        }, this);
+
+        // Wrap bullets around the screen
+        bullets.children.each(function(bullet) {
+            if (bullet.x < 0 || bullet.x > game.config.width || bullet.y < 0 || bullet.y > game.config.height) {
+                bullet.destroy();
+            }
+        });
+    }
+
+    function shootBullet(pointer) {
+        const bullet = bullets.create(player.x, player.y, 'bullet');
+        bullet.rotation = Phaser.Math.Angle.Between(bullet.x, bullet.y, pointer.x, pointer.y);
+        this.physics.moveToObject(bullet, pointer, 500);
+    }
+
+    function spawnZombie() {
+        const zombie = zombies.create(Phaser.Math.Between(0, 800), Phaser.Math.Between(0, 600), 'zombie');
+        zombie.setCollideWorldBounds(false);
+        zombie.setBounce(1);
+        zombie.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(-100, 100));
+    }
+
+    function bulletHitZombie(bullet, zombie) {
+        bullet.destroy();
+        zombie.destroy();
+        score += 1;
+        scoreText.setText('Score: ' + score);
+    }
+
+    function playerHitZombie(player, zombie) {
+        restartGame.call(this);
+    }
+
+    function restartGame() {
+        score = 0;
+        scoreText.setText('Score: 0');
+        this.scene.restart();
+    }
+</script>
+
+</body>
+</html>
