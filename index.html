@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>crap shooter</title>
-    <link rel="icon" type="image/x-icon" href="/assets/player.png">
+    <title>Top-Down Shooter</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
     <style>
         body { margin: 0; }
@@ -52,10 +51,10 @@
 
     function preload() {
         // Load assets
-        this.load.image('player', 'https://raw.githubusercontent.com/big-buckets/crapshooter/main/player.png');
-        this.load.image('zombie', 'https://raw.githubusercontent.com/big-buckets/crapshooter/main/zombie.png');
-        this.load.image('bullet', 'https://raw.githubusercontent.com/big-buckets/crapshooter/main/bullet.png');
-        this.load.image('background', 'https://raw.githubusercontent.com/big-buckets/crapshooter/main/background.png');
+        this.load.image('player', 'assets/player.png');
+        this.load.image('zombie', 'assets/zombie.png');
+        this.load.image('bullet', 'assets/bullet.png');
+        this.load.image('background', 'assets/background.png');
     }
 
     function create() {
