@@ -60,8 +60,6 @@
 
     function create() {
         // Create player
-        const controlsText = this.add.text(400, 450, 'A - Left\nD - Right\nW - Rocket Boots\nZ - Shoot\nO - Shield', { fontSize: '20px', fill: '#fff', align: 'center' }).setOrigin(0.5);
-        startMenu.add(controlsText);
 
         this.add.image(400, 300, 'background').setDisplaySize(800, 600);
         player = this.physics.add.sprite(400, 300, 'player');
